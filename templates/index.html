@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Predicción de Temperatura Crítica</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f4f8;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 80px auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333333;
+      }
+
+      label {
+        display: block;
+        margin-top: 15px;
+        font-weight: 600;
+        color: #444;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 25px;
+        padding: 12px;
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #004c99;
+      }
+
+      #resultado {
+        margin-top: 25px;
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .resultado-ok {
+        background-color: #e6f4ea;
+        color: #2e7d32;
+        border-left: 5px solid #2e7d32;
+      }
+
+      .resultado-error {
+        background-color: #fdecea;
+        color: #c62828;
+        border-left: 5px solid #c62828;
+      }
+    </style>
+
+    <script>
+      function predecirTemperatura(event) {
+        event.preventDefault();
+
+        const features = [
+          parseFloat(document.getElementById("wtd_gmean_atomic_radius").value),
+          parseFloat(document.getElementById("wtd_mean_atomic_mass").value),
+          parseFloat(
+            document.getElementById("wtd_std_ThermalConductivity").value
+          ),
+          parseFloat(document.getElementById("wtd_mean_atomic_radius").value),
+          parseFloat(
+            document.getElementById("wtd_gmean_ThermalConductivity").value
+          ),
+          parseFloat(document.getElementById("wtd_gmean_Valence").value),
+        ];
+
+        fetch("/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ features }),
+        })
+          .then((resp) => resp.json())
+          .then((data) => {
+            const resultado = document.getElementById("resultado");
+            if (data.error) {
+              resultado.innerText = "Error: " + data.error;
+              resultado.className = "resultado-error";
+            } else {
+              resultado.innerText =
+                "Temperatura crítica estimada: " +
+                data.prediction.toFixed(2) +
+                " K";
+              resultado.className = "resultado-ok";
+            }
+          })
+          .catch((err) => {
+            const resultado = document.getElementById("resultado");
+            resultado.innerText = "Error en la petición.";
+            resultado.className = "resultado-error";
+            console.error(err);
+          });
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Predicción de Temperatura Crítica</h1>
+      <form onsubmit="predecirTemperatura(event)">
+        <label for="wtd_gmean_atomic_radius">wtd_gmean_atomic_radius:</label>
+        <input type="number" step="any" id="wtd_gmean_atomic_radius" required />
+
+        <label for="wtd_mean_atomic_mass">wtd_mean_atomic_mass:</label>
+        <input type="number" step="any" id="wtd_mean_atomic_mass" required />
+
+        <label for="wtd_std_ThermalConductivity"
+          >wtd_std_ThermalConductivity:</label
+        >
+        <input
+          type="number"
+          step="any"
+          id="wtd_std_ThermalConductivity"
+          required
+        />
+
+        <label for="wtd_mean_atomic_radius">wtd_mean_atomic_radius:</label>
+        <input type="number" step="any" id="wtd_mean_atomic_radius" required />
+
+        <label for="wtd_gmean_ThermalConductivity"
+          >wtd_gmean_ThermalConductivity:</label
+        >
+        <input
+          type="number"
+          step="any"
+          id="wtd_gmean_ThermalConductivity"
+          required
+        />
+
+        <label for="wtd_gmean_Valence">wtd_gmean_Valence:</label>
+        <input type="number" step="any" id="wtd_gmean_Valence" required />
+
+        <button type="submit">Predecir</button>
+      </form>
+
+      <p id="resultado"></p>
+    </div>
+  </body>
+</html>
